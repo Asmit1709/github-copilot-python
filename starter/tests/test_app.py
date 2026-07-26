@@ -35,6 +35,19 @@ def test_new_game_returns_puzzle_and_stores_solution(client):
     assert app_module.CURRENT['puzzle'] is not None
 
 
+@pytest.mark.parametrize(
+    ('difficulty', 'expected_clues'),
+    [('easy', 40), ('medium', 35), ('hard', 30)]
+)
+def test_new_game_supports_difficulty_levels(client, difficulty, expected_clues):
+    response = client.get(f'/new?difficulty={difficulty}')
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    clue_count = sum(1 for row in payload['puzzle'] for value in row if value != 0)
+    assert clue_count == expected_clues
+
+
 def test_check_solution_returns_error_when_no_game_started(client):
     app_module.CURRENT['solution'] = None
     app_module.CURRENT['puzzle'] = None
