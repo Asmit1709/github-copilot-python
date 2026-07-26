@@ -1,4 +1,4 @@
-# Sudoku Game Refactor
+  # Sudoku Game Refactor
 
 ## Overview
 

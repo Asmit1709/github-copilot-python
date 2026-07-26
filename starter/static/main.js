@@ -3,6 +3,8 @@ const SIZE = 9;
 const LEADERBOARD_STORAGE_KEY = 'sudoku-leaderboard';
 const THEME_STORAGE_KEY = 'sudoku-theme';
 let puzzle = [];
+let hintsUsed = 0;
+let completionSummary = null;
 let timerInterval = null;
 let elapsedSeconds = 0;
 let currentGameCompleted = false;
@@ -50,7 +52,8 @@ function renderLeaderboard(entries) {
   entries.forEach((entry, index) => {
     const item = document.createElement('li');
     const difficulty = entry.difficulty ? entry.difficulty.charAt(0).toUpperCase() + entry.difficulty.slice(1) : 'Unknown';
-    item.textContent = `${index + 1}. ${formatTime(entry.seconds)} - ${difficulty}`;
+    const playerName = entry.name ? entry.name : 'Anonymous';
+    item.textContent = `${index + 1}. ${playerName} - ${formatTime(entry.time)} - ${difficulty} - Hints: ${entry.hintsUsed}`;
     leaderboardList.appendChild(item);
   });
 }
@@ -59,8 +62,8 @@ function loadLeaderboard() {
   try {
     const storedEntries = JSON.parse(localStorage.getItem(LEADERBOARD_STORAGE_KEY) || '[]');
     const sortedEntries = storedEntries
-      .filter((entry) => Number.isFinite(entry.seconds))
-      .sort((a, b) => a.seconds - b.seconds)
+      .filter((entry) => Number.isFinite(entry.time))
+      .sort((a, b) => a.time - b.time)
       .slice(0, 10);
     renderLeaderboard(sortedEntries);
   } catch (error) {
@@ -91,11 +94,11 @@ function toggleTheme() {
   localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
 }
 
-function saveLeaderboardEntry(seconds, difficulty) {
+function saveLeaderboardEntry(entry) {
   try {
     const storedEntries = JSON.parse(localStorage.getItem(LEADERBOARD_STORAGE_KEY) || '[]');
-    const updatedEntries = [...storedEntries, {seconds, difficulty}]
-      .sort((a, b) => a.seconds - b.seconds)
+    const updatedEntries = [...storedEntries, entry]
+      .sort((a, b) => a.time - b.time)
       .slice(0, 10);
     localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(updatedEntries));
     renderLeaderboard(updatedEntries);
@@ -178,6 +181,43 @@ function updateCellValidation(input) {
   });
 }
 
+function showCompletionModal() {
+  const modal = document.getElementById('win-modal');
+  const message = document.getElementById('win-modal-message');
+  if (!modal || !message || !completionSummary) {
+    return;
+  }
+
+  const difficulty = completionSummary.difficulty.charAt(0).toUpperCase() + completionSummary.difficulty.slice(1);
+  message.innerText = `Time: ${formatTime(completionSummary.time)}\nDifficulty: ${difficulty}\nHints used: ${completionSummary.hintsUsed}`;
+  modal.classList.remove('hidden');
+}
+
+function closeCompletionModal() {
+  const modal = document.getElementById('win-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+}
+
+function saveScore() {
+  const playerNameInput = document.getElementById('player-name');
+  const name = playerNameInput ? playerNameInput.value.trim() : '';
+  if (!completionSummary) {
+    return;
+  }
+
+  const entry = {
+    name: name || 'Anonymous',
+    time: completionSummary.time,
+    hintsUsed: completionSummary.hintsUsed,
+    difficulty: completionSummary.difficulty
+  };
+
+  saveLeaderboardEntry(entry);
+  closeCompletionModal();
+}
+
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
   boardDiv.innerHTML = '';
@@ -229,6 +269,9 @@ function renderPuzzle(puz) {
 
 async function newGame() {
   currentGameCompleted = false;
+  hintsUsed = 0;
+  completionSummary = null;
+  closeCompletionModal();
   const difficulty = document.getElementById('difficulty').value;
   const res = await fetch(`/new?difficulty=${encodeURIComponent(difficulty)}`);
   const data = await res.json();
@@ -253,6 +296,7 @@ async function revealHint() {
   inp.dataset.hint = 'true';
   inp.className = 'sudoku-cell hint';
   inp.classList.remove('invalid');
+  hintsUsed += 1;
 }
 
 async function checkSolution() {
@@ -298,7 +342,12 @@ async function checkSolution() {
   if (incorrect.size === 0) {
     if (!currentGameCompleted) {
       currentGameCompleted = true;
-      saveLeaderboardEntry(elapsedSeconds, document.getElementById('difficulty').value);
+      completionSummary = {
+        time: elapsedSeconds,
+        hintsUsed,
+        difficulty: document.getElementById('difficulty').value
+      };
+      showCompletionModal();
     }
     stopTimer();
     msg.style.color = '#388e3c';
@@ -315,6 +364,8 @@ window.addEventListener('load', () => {
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('hint').addEventListener('click', revealHint);
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  document.getElementById('save-score').addEventListener('click', saveScore);
+  document.getElementById('close-modal').addEventListener('click', closeCompletionModal);
   loadTheme();
   loadLeaderboard();
   // initialize

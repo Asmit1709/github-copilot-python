@@ -31,6 +31,14 @@ def test_index_includes_leaderboard_container(client):
     assert b'Leaderboard' in response.data
 
 
+def test_index_includes_completion_modal(client):
+    response = client.get('/')
+
+    assert response.status_code == 200
+    assert b'id="win-modal"' in response.data
+    assert b'Save Score' in response.data
+
+
 def test_new_game_returns_puzzle_and_stores_solution(client):
     response = client.get('/new?clues=35')
 
