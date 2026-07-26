@@ -6,29 +6,33 @@
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <h1>Sudoku Game</h1>
-  <div class="controls difficulty-controls">
-    <label for="difficulty">Difficulty:</label>
-    <select id="difficulty" name="difficulty">
-      <option value="easy">Easy</option>
-      <option value="medium">Medium</option>
-      <option value="hard">Hard</option>
-    </select>
-  </div>
-  <div class="controls timer-controls">
-    <span id="timer">00:00</span>
-  </div>
-  <div id="sudoku-board"></div>
-  <div class="controls">
-    <button id="new-game">New Game</button>
-    <button id="check-solution">Check Solution</button>
-    <button id="hint">Hint</button>
-    <button id="theme-toggle" type="button">Dark Mode</button>
-    <span id="message"></span>
-  </div>
-  <div id="leaderboard" class="leaderboard">
-    <h2>Leaderboard</h2>
-    <ol id="leaderboard-list"></ol>
+  <div class="page-shell">
+    <h1>Sudoku Game</h1>
+    <div class="controls difficulty-controls">
+      <label for="difficulty">Difficulty:</label>
+      <select id="difficulty" name="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+    </div>
+    <div class="controls timer-controls">
+      <span id="timer">00:00</span>
+    </div>
+    <div class="board-container">
+    <div id="sudoku-board"></div>
+</div>
+    <div class="controls action-controls">
+      <button id="new-game">New Game</button>
+      <button id="check-solution">Check Solution</button>
+      <button id="hint">Hint</button>
+      <button id="theme-toggle" type="button">Dark Mode</button>
+      <span id="message"></span>
+    </div>
+    <div id="leaderboard" class="leaderboard">
+      <h2>Leaderboard</h2>
+      <ol id="leaderboard-list"></ol>
+    </div>
   </div>
   <script src="/static/main.js"></script>
 </body>
