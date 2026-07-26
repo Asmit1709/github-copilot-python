@@ -23,6 +23,14 @@ def test_index_renders_template(client):
     assert b'Sudoku Game' in response.data
 
 
+def test_index_includes_leaderboard_container(client):
+    response = client.get('/')
+
+    assert response.status_code == 200
+    assert b'id="leaderboard"' in response.data
+    assert b'Leaderboard' in response.data
+
+
 def test_new_game_returns_puzzle_and_stores_solution(client):
     response = client.get('/new?clues=35')
 

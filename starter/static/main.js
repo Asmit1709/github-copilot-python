@@ -1,8 +1,10 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
+const LEADERBOARD_STORAGE_KEY = 'sudoku-leaderboard';
 let puzzle = [];
 let timerInterval = null;
 let elapsedSeconds = 0;
+let currentGameCompleted = false;
 
 
 function formatTime(totalSeconds) {
@@ -27,6 +29,54 @@ function stopTimer() {
   if (timerInterval !== null) {
     window.clearInterval(timerInterval);
     timerInterval = null;
+  }
+}
+
+function renderLeaderboard(entries) {
+  const leaderboardList = document.getElementById('leaderboard-list');
+  if (!leaderboardList) {
+    return;
+  }
+
+  leaderboardList.innerHTML = '';
+  if (!entries.length) {
+    const emptyItem = document.createElement('li');
+    emptyItem.textContent = 'No completed games yet.';
+    leaderboardList.appendChild(emptyItem);
+    return;
+  }
+
+  entries.forEach((entry, index) => {
+    const item = document.createElement('li');
+    const difficulty = entry.difficulty ? entry.difficulty.charAt(0).toUpperCase() + entry.difficulty.slice(1) : 'Unknown';
+    item.textContent = `${index + 1}. ${formatTime(entry.seconds)} - ${difficulty}`;
+    leaderboardList.appendChild(item);
+  });
+}
+
+function loadLeaderboard() {
+  try {
+    const storedEntries = JSON.parse(localStorage.getItem(LEADERBOARD_STORAGE_KEY) || '[]');
+    const sortedEntries = storedEntries
+      .filter((entry) => Number.isFinite(entry.seconds))
+      .sort((a, b) => a.seconds - b.seconds)
+      .slice(0, 10);
+    renderLeaderboard(sortedEntries);
+  } catch (error) {
+    renderLeaderboard([]);
+  }
+}
+
+function saveLeaderboardEntry(seconds, difficulty) {
+  try {
+    const storedEntries = JSON.parse(localStorage.getItem(LEADERBOARD_STORAGE_KEY) || '[]');
+    const updatedEntries = [...storedEntries, {seconds, difficulty}]
+      .sort((a, b) => a.seconds - b.seconds)
+      .slice(0, 10);
+    localStorage.setItem(LEADERBOARD_STORAGE_KEY, JSON.stringify(updatedEntries));
+    renderLeaderboard(updatedEntries);
+  } catch (error) {
+    renderLeaderboard([]);
   }
 }
 
@@ -154,6 +204,7 @@ function renderPuzzle(puz) {
 }
 
 async function newGame() {
+  currentGameCompleted = false;
   const difficulty = document.getElementById('difficulty').value;
   const res = await fetch(`/new?difficulty=${encodeURIComponent(difficulty)}`);
   const data = await res.json();
@@ -221,6 +272,10 @@ async function checkSolution() {
     }
   }
   if (incorrect.size === 0) {
+    if (!currentGameCompleted) {
+      currentGameCompleted = true;
+      saveLeaderboardEntry(elapsedSeconds, document.getElementById('difficulty').value);
+    }
     stopTimer();
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
@@ -235,6 +290,7 @@ window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('hint').addEventListener('click', revealHint);
+  loadLeaderboard();
   // initialize
   newGame();
 });
