@@ -20,7 +20,8 @@ def resolve_clues(request_args):
 # Keep a simple in-memory store for current puzzle and solution
 CURRENT = {
     'puzzle': None,
-    'solution': None
+    'solution': None,
+    'hinted_cells': []
 }
 
 @app.route('/')
@@ -33,6 +34,7 @@ def new_game():
     puzzle, solution = sudoku_logic.generate_puzzle(clues)
     CURRENT['puzzle'] = puzzle
     CURRENT['solution'] = solution
+    CURRENT['hinted_cells'] = []
     return jsonify({'puzzle': puzzle})
 
 @app.route('/check', methods=['POST'])
@@ -48,6 +50,26 @@ def check_solution():
             if board[i][j] != solution[i][j]:
                 incorrect.append([i, j])
     return jsonify({'incorrect': incorrect})
+
+
+@app.route('/hint')
+def get_hint():
+    solution = CURRENT.get('solution')
+    puzzle = CURRENT.get('puzzle')
+    if solution is None or puzzle is None:
+        return jsonify({'error': 'No game in progress'}), 400
+
+    hinted_cells = CURRENT.get('hinted_cells', [])
+    for row in range(sudoku_logic.SIZE):
+        for col in range(sudoku_logic.SIZE):
+            if puzzle[row][col] != 0:
+                continue
+            if [row, col] in hinted_cells:
+                continue
+            CURRENT['hinted_cells'] = hinted_cells + [[row, col]]
+            return jsonify({'row': row, 'col': col, 'value': solution[row][col]})
+
+    return jsonify({'error': 'No empty cells left'}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)

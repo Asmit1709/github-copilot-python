@@ -4,6 +4,7 @@ let puzzle = [];
 let timerInterval = null;
 let elapsedSeconds = 0;
 
+
 function formatTime(totalSeconds) {
   const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
   const seconds = String(totalSeconds % 60).padStart(2, '0');
@@ -83,6 +84,23 @@ async function newGame() {
   startTimer();
 }
 
+async function revealHint() {
+  const res = await fetch('/hint');
+  const data = await res.json();
+  if (data.error) {
+    return;
+  }
+
+  const boardDiv = document.getElementById('sudoku-board');
+  const inputs = boardDiv.getElementsByTagName('input');
+  const idx = data.row * SIZE + data.col;
+  const inp = inputs[idx];
+  inp.value = data.value;
+  inp.disabled = true;
+  inp.dataset.hint = 'true';
+  inp.className = 'sudoku-cell hint';
+}
+
 async function checkSolution() {
   const boardDiv = document.getElementById('sudoku-board');
   const inputs = boardDiv.getElementsByTagName('input');
@@ -110,7 +128,14 @@ async function checkSolution() {
   const incorrect = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
-    if (inp.disabled) continue;
+    if (inp.disabled) {
+      if (inp.dataset.hint === 'true') {
+        inp.className = 'sudoku-cell hint';
+      } else {
+        inp.className = 'sudoku-cell prefilled';
+      }
+      continue;
+    }
     inp.className = 'sudoku-cell';
     if (incorrect.has(idx)) {
       inp.className = 'sudoku-cell incorrect';
@@ -130,6 +155,7 @@ async function checkSolution() {
 window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
+  document.getElementById('hint').addEventListener('click', revealHint);
   // initialize
   newGame();
 });

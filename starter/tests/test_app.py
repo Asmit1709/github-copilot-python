@@ -58,6 +58,18 @@ def test_check_solution_returns_error_when_no_game_started(client):
     assert response.get_json()['error'] == 'No game in progress'
 
 
+def test_hint_endpoint_returns_new_empty_cells_on_repeated_calls(client):
+    response = client.get('/new?difficulty=easy')
+    assert response.status_code == 200
+
+    first_hint = client.get('/hint')
+    second_hint = client.get('/hint')
+
+    assert first_hint.status_code == 200
+    assert second_hint.status_code == 200
+    assert first_hint.get_json()['row'] != second_hint.get_json()['row'] or first_hint.get_json()['col'] != second_hint.get_json()['col']
+
+
 def test_check_solution_reports_incorrect_cells(client):
     _, solution = app_module.sudoku_logic.generate_puzzle(35)
     app_module.CURRENT['solution'] = solution
