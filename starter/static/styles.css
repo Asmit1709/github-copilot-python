@@ -62,6 +62,26 @@ h1 {
     margin: 20px auto;
 }
 
+.difficulty-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.difficulty-controls label {
+    font-size: 16px;
+    color: #333;
+}
+
+.difficulty-controls select {
+    padding: 6px 10px;
+    font-size: 16px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+}
+
 button {
     padding: 8px 18px;
     margin: 0 8px;
