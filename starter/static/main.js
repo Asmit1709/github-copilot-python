@@ -116,31 +116,53 @@ function isCellEditable(input) {
   return !input.disabled && input.dataset.hint !== 'true';
 }
 
-function validateCell(input, allInputs) {
-  if (!isCellEditable(input)) {
-    input.classList.remove('invalid');
-    return;
-  }
+function clearValidationHighlights() {
+  document.querySelectorAll('.sudoku-cell').forEach((cell) => {
+    cell.classList.remove('invalid', 'incorrect');
+  });
+}
 
+function clearHintHighlights() {
+  document.querySelectorAll('.sudoku-cell').forEach((cell) => {
+    cell.classList.remove('hint');
+    if (cell.dataset.hint === 'true') {
+      cell.dataset.hint = 'false';
+    }
+  });
+}
+
+function updateCellValidation(input) {
+  const allInputs = getBoardInputs();
   const row = Number(input.dataset.row);
   const col = Number(input.dataset.col);
   const value = input.value;
 
+  if (!isCellEditable(input)) {
+    input.classList.remove('invalid', 'incorrect');
+    return false;
+  }
+
+  allInputs.forEach((cell) => {
+    if (cell.dataset.hint !== 'true') {
+      cell.classList.remove('invalid', 'incorrect');
+    }
+  });
+
   if (value === '') {
-    input.classList.remove('invalid');
-    return;
+    return false;
   }
 
   const numericValue = Number(value);
   if (!Number.isInteger(numericValue) || numericValue < 1 || numericValue > 9) {
     input.classList.add('invalid');
-    return;
+    return true;
   }
 
-  const hasConflict = allInputs.some((otherInput) => {
+  const conflictingCells = [];
+  allInputs.forEach((otherInput) => {
     if (otherInput === input || otherInput.value === '') {
-      return false;
-    }
+    return;
+}
 
     const otherRow = Number(otherInput.dataset.row);
     const otherCol = Number(otherInput.dataset.col);
@@ -149,54 +171,42 @@ function validateCell(input, allInputs) {
     const sameBox = Math.floor(otherRow / 3) === Math.floor(row / 3)
       && Math.floor(otherCol / 3) === Math.floor(col / 3);
 
-    return otherInput.value === value && (sameRow || sameCol || sameBox);
-  });
-
-  input.classList.toggle('invalid', hasConflict);
-}
-
-function updateCellValidation(input) {
-  const allInputs = getBoardInputs();
-  const row = Number(input.dataset.row);
-  const col = Number(input.dataset.col);
-  const affectedCells = new Set();
-
-  for (let i = 0; i < SIZE; i += 1) {
-    affectedCells.add(allInputs[row * SIZE + i]);
-    affectedCells.add(allInputs[i * SIZE + col]);
-  }
-
-  const boxRow = Math.floor(row / 3) * 3;
-  const boxCol = Math.floor(col / 3) * 3;
-  for (let r = boxRow; r < boxRow + 3; r += 1) {
-    for (let c = boxCol; c < boxCol + 3; c += 1) {
-      affectedCells.add(allInputs[r * SIZE + c]);
-    }
-  }
-
-  Array.from(affectedCells).forEach((cell) => {
-    if (cell) {
-      validateCell(cell, allInputs);
+    if (otherInput.value === value && (sameRow || sameCol || sameBox)) {
+      conflictingCells.push(otherInput);
     }
   });
+
+  if (conflictingCells.length > 0) {
+    conflictingCells.push(input);
+    conflictingCells.forEach((cell) => cell.classList.add('invalid'));
+    return true;
+  }
+
+  return false;
 }
 
 function showCompletionModal() {
   const modal = document.getElementById('win-modal');
   const message = document.getElementById('win-modal-message');
+  const playerNameInput = document.getElementById('player-name');
   if (!modal || !message || !completionSummary) {
     return;
   }
 
   const difficulty = completionSummary.difficulty.charAt(0).toUpperCase() + completionSummary.difficulty.slice(1);
   message.innerText = `Time: ${formatTime(completionSummary.time)}\nDifficulty: ${difficulty}\nHints used: ${completionSummary.hintsUsed}`;
-  modal.classList.remove('hidden');
+  if (playerNameInput) {
+    playerNameInput.value = '';
+  }
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
 }
 
 function closeCompletionModal() {
   const modal = document.getElementById('win-modal');
   if (modal) {
-    modal.classList.add('hidden');
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
   }
 }
 
@@ -244,6 +254,8 @@ function createBoardElement() {
 
 function renderPuzzle(puz) {
   puzzle = puz;
+  clearValidationHighlights();
+  clearHintHighlights();
   createBoardElement();
   const boardDiv = document.getElementById('sudoku-board');
   const inputs = boardDiv.getElementsByTagName('input');
@@ -271,6 +283,8 @@ async function newGame() {
   currentGameCompleted = false;
   hintsUsed = 0;
   completionSummary = null;
+  clearValidationHighlights();
+  clearHintHighlights();
   closeCompletionModal();
   const difficulty = document.getElementById('difficulty').value;
   const res = await fetch(`/new?difficulty=${encodeURIComponent(difficulty)}`);
@@ -294,6 +308,8 @@ async function revealHint() {
   inp.value = data.value;
   inp.disabled = true;
   inp.dataset.hint = 'true';
+  clearValidationHighlights();
+  clearHintHighlights();
   inp.className = 'sudoku-cell hint';
   inp.classList.remove('invalid');
   hintsUsed += 1;

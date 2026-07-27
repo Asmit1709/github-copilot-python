@@ -4,37 +4,84 @@
     box-sizing: border-box;
 }
 
+/* ===========================
+   PAGE LAYOUT
+=========================== */
+
 body {
-    font-family: Arial, sans-serif;
-    background: #f4f4f4;
-    color: #333;
     margin: 0;
-    padding: 24px 16px 40px;
-    box-sizing: border-box;
+    padding: 30px;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f6fb;
+    color: #333;
+    transition: 0.3s;
     overflow-x: hidden;
-    transition: background 0.2s, color 0.2s;
+}
+
+body.dark-mode {
+    background: #1d1f23;
+    color: #f5f5f5;
 }
 
 .page-shell {
-    width: min(100%, 1100px);
-    margin: 0 auto;
-    padding: 24px 24px 36px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    box-sizing: border-box;
+    width: 100%;
+    max-width: 1450px;
+    margin: auto;
+    padding: 20px;
 }
 
 .content-layout {
-    width: 100%;
-    max-width: 980px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
-    gap: 28px;
+    grid-template-columns: 260px 1fr 260px;
+    gap: 35px;
     align-items: start;
-    justify-content: center;
-    margin: 0 auto;
+}
+
+/* ===========================
+   PANELS
+=========================== */
+
+.panel{
+    background:#ffffff;
+    border-radius:18px;
+    padding:24px;
+    border:1px solid #e6e6e6;
+    box-shadow:0 12px 28px rgba(0,0,0,.08);
+}
+
+body.dark-mode .panel{
+    background:#2b2d31;
+}
+
+.left-panel,
+.right-panel{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+.center-panel{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.panel-title{
+    text-align:center;
+    margin:0 0 20px;
+}
+
+.control-group{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.control-group input,
+.control-group select{
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ccc;
 }
 
 body.dark-mode {
@@ -42,10 +89,11 @@ body.dark-mode {
     color: #f5f5f5;
 }
 
-h1 {
-    margin: 0;
-    font-size: 36px;
-    font-weight: 700;
+h1{
+    margin:0;
+    font-size:42px;
+    font-weight:800;
+    letter-spacing:.5px;
 }
 
 body.dark-mode h1,
@@ -57,7 +105,7 @@ body.dark-mode #leaderboard-list li {
 }
 
 #sudoku-board {
-    width: min(92vw, 680px);
+    width: min(90vw, 760px);
     max-width: 100%;
     aspect-ratio: 1;
     display: flex;
@@ -94,6 +142,7 @@ body.dark-mode #sudoku-board {
     background: #fafafa;
     color: #333;
     transition: background 0.2s, color 0.2s;
+    position: relative;
 }
 
 body.dark-mode .sudoku-cell {
@@ -133,7 +182,22 @@ body.dark-mode .sudoku-row:nth-child(n + 7):nth-child(-n + 9) .sudoku-cell:nth-c
 }
 
 .sudoku-cell:focus {
-    background: #e0f7fa;
+    outline: 2px solid #90caf9;
+    outline-offset: -1px;
+}
+
+.sudoku-cell.invalid {
+    background: #ffebee;
+    border-color: #c62828;
+    box-shadow: inset 0 0 0 2px #c62828;
+}
+
+.sudoku-cell.hint {
+    background: #fff8c4;
+    border-color: #b8860b;
+    box-shadow: inset 0 0 0 2px #b8860b;
+    color: #7a5b00;
+    font-weight: bold;
 }
 
 .sudoku-cell.prefilled {
@@ -147,19 +211,20 @@ body.dark-mode .sudoku-cell.prefilled {
     color: #f5f5f5;
 }
 
-.sudoku-cell.hint {
-    background: #fff9c4;
-    color: #7a5b00;
-    font-weight: bold;
-}
-
 .sudoku-cell.incorrect {
     background: #ffcdd2;
 }
 
-.sudoku-cell.invalid {
-    background: #ffebee;
-    border-color: #d32f2f;
+body.dark-mode .sudoku-cell.invalid {
+    background: #5b2020;
+    border-color: #ff8a80;
+    box-shadow: inset 0 0 0 2px #ff8a80;
+}
+
+body.dark-mode .sudoku-cell.hint {
+    background: #4a3d1a;
+    border-color: #f0c36d;
+    color: #f8e6b0;
 }
 
 .sudoku-cell:nth-child(3),
@@ -218,20 +283,28 @@ body.dark-mode .difficulty-controls select {
     border-color: #777;
 }
 
-button {
-    padding: 12px 22px;
-    font-size: 17px;
-    font-weight: 600;
-    border: none;
-    background: #1976d2;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s ease;
+/* ===========================
+   BUTTONS
+=========================== */
+
+button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background:#2563eb;
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.25s;
+    box-shadow:0 5px 15px rgba(37,99,235,.25);
 }
 
-button:hover {
-    background: #1565c0;
+button:hover{
+    background:#1d4ed8;
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(37,99,235,.35);
 }
 
 #message {
@@ -241,27 +314,37 @@ button:hover {
     width: 100%;
 }
 
-.leaderboard {
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 18px 22px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* ===========================
+   LEADERBOARD
+=========================== */
+
+.leaderboard-panel{
+    width:min(100%,760px);
+    margin-top:15px;
+    padding:22px;
+    border-radius:16px;
+    border:1px solid #e5e5e5;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
 }
 
-body.dark-mode .leaderboard {
-    background: #2b2b2b;
-    border-color: #555;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+body.dark-mode .leaderboard-panel {
+    background: #2b2d31;
 }
 
-.leaderboard h2 {
-    margin: 0 0 12px;
-    font-size: 24px;
-    color: #333;
+.leaderboard-panel h2 {
+    margin: 0 0 15px;
+    text-align: center;
+}
+
+.leaderboard-subtitle {
+    margin: -8px 0 15px;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+}
+
+body.dark-mode .leaderboard-subtitle {
+    color: #bbb;
 }
 
 #leaderboard-list {
@@ -281,13 +364,25 @@ body.dark-mode .leaderboard {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-width: 0;
+}
+
+.center-panel h1{
+    margin-bottom:10px;
+}
+
+.timer-wrapper{
+    font-size:26px;
+    font-weight:700;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    color:#2563eb;
 }
 
 .modal {
     position: fixed;
     inset: 0;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     padding: 20px;
@@ -295,8 +390,8 @@ body.dark-mode .leaderboard {
     z-index: 1000;
 }
 
-.modal.hidden {
-    display: none;
+.modal.is-open {
+    display: flex;
 }
 
 .modal-content {
